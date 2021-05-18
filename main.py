@@ -5,17 +5,33 @@ from matplotlib import pyplot as plt
 
 matplotlib.use('TkAgg')
 indices = []
-test_array_length = 30
+test_array_length = 15
 for i in range(test_array_length):
     indices.append(i)
 
 
-def update_plot(arr):
+def update_plot(arr, i=-1, j=-1, last=False):
+    colors = test_array_length * ['#1f77b4']
+    if i != -1:
+        colors[i] = '#2ca02c'
+    if j != -1:
+        colors[j] = '#2ca02c'
     plt.title(function)
-    plt.bar(indices, arr)
-    plt.draw()
-    plt.pause(0.0001)
-    plt.clf()
+    delay = 0.0001
+    if last:
+        for i in range(test_array_length):
+            colors[i] = '#2ca02c'
+            plt.bar(indices, arr, color=colors)
+            plt.pause(delay)
+            plt.draw()
+            if i == test_array_length - 1:
+                plt.pause(1000 * delay)
+            plt.clf()
+    else:
+        plt.bar(indices, arr, color=colors)
+        plt.draw()
+        plt.pause(delay)
+        plt.clf()
 
 
 def selection_sort(arr):
@@ -28,8 +44,8 @@ def selection_sort(arr):
                 min_value = j
         if min_value != i:
             arr[min_value], arr[i] = arr[i], arr[min_value]
-            update_plot(arr)
-    update_plot(arr)
+            update_plot(arr, min_value, i)
+    update_plot(arr, last=True)
     return arr
 
 
@@ -41,10 +57,10 @@ def bubble_sort(arr):
             if arr[j + 1] < arr[j]:
                 entered = True
                 arr[j + 1], arr[j] = arr[j], arr[j + 1]
-                update_plot(arr)
+                update_plot(arr, j, j + 1)
         if not entered:
             break
-    update_plot(arr)
+    update_plot(arr, last=True)
 
 
 def insertion_sort(arr):
@@ -57,10 +73,11 @@ def insertion_sort(arr):
             entered = True
             arr[j + 1] = arr[j]
             j -= 1
-            update_plot(arr)
+            update_plot(arr, j, j + 1)
         if entered:
             arr[j + 1] = temp
-            update_plot(arr)
+            update_plot(arr, j + 1)
+    update_plot(arr, last=True)
 
 
 def build_max_heap(arr):
@@ -85,7 +102,7 @@ def heapify(arr, n, i):
 
     if max != i:
         arr[i], arr[max] = arr[max], arr[i]
-        update_plot(arr)
+        update_plot(arr, max, i)
         heapify(arr, n, max)
 
 
@@ -98,7 +115,7 @@ def heap_sort(arr):
         update_plot(arr)
         n = n - 1
         heapify(arr, n, 0)
-    update_plot(arr)
+    update_plot(arr, last=True)
 
 
 sorting_functions = {'Insertion Sort': insertion_sort, 'Bubble Sort': bubble_sort, 'Selection Sort': selection_sort,
