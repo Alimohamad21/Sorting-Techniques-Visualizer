@@ -5,7 +5,8 @@ from matplotlib import pyplot as plt
 
 matplotlib.use('TkAgg')
 indices = []
-for i in range(25):
+test_array_length = 30
+for i in range(test_array_length):
     indices.append(i)
 
 
@@ -103,7 +104,7 @@ def heap_sort(arr):
 sorting_functions = {'Insertion Sort': insertion_sort, 'Bubble Sort': bubble_sort, 'Selection Sort': selection_sort,
                      'Heap Sort': heap_sort}
 arr = []
-for j in range(25):
+for j in range(test_array_length):
     arr.append(randint(0, 10000))
 for function in sorting_functions.keys():
     temp = arr.copy()
