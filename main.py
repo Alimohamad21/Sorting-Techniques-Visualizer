@@ -1,21 +1,19 @@
-from threading import Thread
-import time
 from random import randint
+from threading import Thread
 
 import matplotlib
 from matplotlib import pyplot as plt
 from playsound import playsound
-
-
-def play(file):
-    Thread(target=playsound, args=(file,), daemon=True).start()
-
 
 matplotlib.use('TkAgg')
 indices = []
 test_array_length = 25
 for i in range(test_array_length):
     indices.append(i)
+
+
+def play(file):
+    Thread(target=playsound, args=(file,), daemon=True).start()
 
 
 def update_plot(arr, i=-1, j=-1, last=False, first=False):
@@ -36,14 +34,14 @@ def update_plot(arr, i=-1, j=-1, last=False, first=False):
             if i == test_array_length - 1:
                 plt.pause(1000 * delay)
             plt.clf()
-            play('sound2.wav')
+            play('sounds/sound2.wav')
     else:
         plt.bar(indices, arr, color=colors)
         plt.draw()
         plt.pause(delay)
         plt.clf()
         if not first:
-            play('sound1.wav')
+            play('sounds/sound1.wav')
 
 
 def selection_sort(arr):
