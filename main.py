@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 matplotlib.use('TkAgg')
 indices = []
-test_array_length = 15
+test_array_length = 25
 for i in range(test_array_length):
     indices.append(i)
 
@@ -45,7 +45,6 @@ def selection_sort(arr):
         if min_value != i:
             arr[min_value], arr[i] = arr[i], arr[min_value]
             update_plot(arr, min_value, i)
-    update_plot(arr, last=True)
     return arr
 
 
@@ -60,12 +59,14 @@ def bubble_sort(arr):
                 update_plot(arr, j, j + 1)
         if not entered:
             break
-    update_plot(arr, last=True)
 
 
-def insertion_sort(arr):
-    update_plot(arr)
-    for i in range(1, len(arr)):
+def insertion_sort(arr, left=-10, right=-10):
+    if left == -10 and right == -10:
+        values = range(1, len(arr))
+    else:
+        values = range(left + 1, right + 1)
+    for i in values:
         j = i - 1
         entered = False
         temp = arr[i]
@@ -77,7 +78,6 @@ def insertion_sort(arr):
         if entered:
             arr[j + 1] = temp
             update_plot(arr, j + 1)
-    update_plot(arr, last=True)
 
 
 def build_max_heap(arr):
@@ -115,15 +115,95 @@ def heap_sort(arr):
         update_plot(arr)
         n = n - 1
         heapify(arr, n, 0)
-    update_plot(arr, last=True)
 
 
-sorting_functions = {'Insertion Sort': insertion_sort, 'Bubble Sort': bubble_sort, 'Selection Sort': selection_sort,
+def partition(arr, low, high):
+    i = (low - 1)
+    pivot = arr[high]
+    for j in range(low, high):
+        if arr[j] <= pivot:
+            i = i + 1
+            arr[i], arr[j] = arr[j], arr[i]
+            update_plot(arr, i, j)
+    arr[i + 1], arr[high] = arr[high], arr[i + 1]
+    update_plot(arr, i + 1, high)
+    return i + 1
+
+
+def quick_sort(arr, low, high):
+    if low < high:
+        pi = partition(arr, low, high)
+        quick_sort(arr, low, pi - 1)
+        quick_sort(arr, pi + 1, high)
+
+
+def merge(arr, start, mid, end):
+    start2 = mid + 1
+    if arr[mid] <= arr[start2]:
+        return
+    while start <= mid and start2 <= end:
+        if arr[start] <= arr[start2]:
+            start += 1
+        else:
+            value = arr[start2]
+            index = start2
+            while index != start:
+                arr[index] = arr[index - 1]
+                update_plot(arr, index, index - 1)
+                index -= 1
+            arr[start] = value
+            update_plot(arr, start)
+            start += 1
+            mid += 1
+            start2 += 1
+
+
+def merge_sort(arr, l, r):
+    if l < r:
+        m = l + (r - l) // 2
+        merge_sort(arr, l, m)
+        merge_sort(arr, m + 1, r)
+        merge(arr, l, m, r)
+
+
+def calcMinRun(n):
+    r = 0
+    while n >= 32:
+        r |= n & 1
+        n >>= 1
+    return n + r
+
+
+def tim_sort(arr):
+    n = len(arr)
+    minRun = calcMinRun(n)
+    for start in range(0, n, minRun):
+        end = min(start + minRun - 1, n - 1)
+        insertion_sort(arr, start, end)
+    size = minRun
+    while size < n:
+        for left in range(0, n, 2 * size):
+            mid = min(n - 1, left + size - 1)
+            right = min((left + 2 * size - 1), (n - 1))
+            if mid < right:
+                merge(arr, left, mid, right)
+        size = 2 * size
+
+
+sorting_functions = {'Built-in Python Sort': tim_sort, 'Merge Sort': merge_sort, 'Quick Sort': quick_sort,
+                     'Insertion Sort': insertion_sort,
+                     'Bubble Sort': bubble_sort,
+                     'Selection Sort': selection_sort,
                      'Heap Sort': heap_sort}
 arr = []
 for j in range(test_array_length):
     arr.append(randint(0, 10000))
 for function in sorting_functions.keys():
     temp = arr.copy()
-    sorting_functions[function](temp)
+    args = [temp]
+    if function == 'Quick Sort' or function == 'Merge Sort':
+        args.append(0)
+        args.append(len(temp) - 1)
+    sorting_functions[function](*args)
+    update_plot(temp, last=True)
 input('Press any button to exit:')
