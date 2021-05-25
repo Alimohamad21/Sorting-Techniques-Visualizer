@@ -1,7 +1,15 @@
+from threading import Thread
+import time
 from random import randint
 
 import matplotlib
 from matplotlib import pyplot as plt
+from playsound import playsound
+
+
+def play(file):
+    Thread(target=playsound, args=(file,), daemon=True).start()
+
 
 matplotlib.use('TkAgg')
 indices = []
@@ -10,13 +18,14 @@ for i in range(test_array_length):
     indices.append(i)
 
 
-def update_plot(arr, i=-1, j=-1, last=False):
+def update_plot(arr, i=-1, j=-1, last=False, first=False):
+    global iterations
     colors = test_array_length * ['#1f77b4']
     if i != -1:
         colors[i] = '#2ca02c'
     if j != -1:
         colors[j] = '#2ca02c'
-    plt.title(function)
+    plt.title(f'{function}        Iterations:{iterations}')
     delay = 0.0001
     if last:
         for i in range(test_array_length):
@@ -27,19 +36,24 @@ def update_plot(arr, i=-1, j=-1, last=False):
             if i == test_array_length - 1:
                 plt.pause(1000 * delay)
             plt.clf()
+            play('sound2.wav')
     else:
         plt.bar(indices, arr, color=colors)
         plt.draw()
         plt.pause(delay)
         plt.clf()
+        if not first:
+            play('sound1.wav')
 
 
 def selection_sort(arr):
+    global iterations
     update_plot(arr)
     indexing_length = range(0, len(arr) - 1)
     for i in indexing_length:
         min_value = i
         for j in range(i + 1, len(arr)):
+            iterations += 1
             if arr[j] < arr[min_value]:
                 min_value = j
         if min_value != i:
@@ -49,10 +63,11 @@ def selection_sort(arr):
 
 
 def bubble_sort(arr):
-    update_plot(arr)
+    global iterations
     for i in range(len(arr) - 1):
         entered = False
         for j in range(len(arr) - i - 1):
+            iterations += 1
             if arr[j + 1] < arr[j]:
                 entered = True
                 arr[j + 1], arr[j] = arr[j], arr[j + 1]
@@ -62,6 +77,7 @@ def bubble_sort(arr):
 
 
 def insertion_sort(arr, left=-10, right=-10):
+    global iterations
     if left == -10 and right == -10:
         values = range(1, len(arr))
     else:
@@ -71,6 +87,7 @@ def insertion_sort(arr, left=-10, right=-10):
         entered = False
         temp = arr[i]
         while temp < arr[j] and j >= 0:
+            iterations += 1
             entered = True
             arr[j + 1] = arr[j]
             j -= 1
@@ -89,6 +106,8 @@ def build_max_heap(arr):
 def heapify(arr, n, i):
     left = 2 * i + 1
     right = 2 * i + 2
+    global iterations
+    iterations += 1
     max = i
     if left < n:
         if arr[left] > arr[i]:
@@ -121,6 +140,8 @@ def partition(arr, low, high):
     i = (low - 1)
     pivot = arr[high]
     for j in range(low, high):
+        global iterations
+        iterations += 1
         if arr[j] <= pivot:
             i = i + 1
             arr[i], arr[j] = arr[j], arr[i]
@@ -142,12 +163,14 @@ def merge(arr, start, mid, end):
     if arr[mid] <= arr[start2]:
         return
     while start <= mid and start2 <= end:
+        global iterations
         if arr[start] <= arr[start2]:
             start += 1
         else:
             value = arr[start2]
             index = start2
             while index != start:
+                iterations += 1
                 arr[index] = arr[index - 1]
                 update_plot(arr, index, index - 1)
                 index -= 1
@@ -190,20 +213,23 @@ def tim_sort(arr):
         size = 2 * size
 
 
-sorting_functions = {'Built-in Python Sort': tim_sort, 'Merge Sort': merge_sort, 'Quick Sort': quick_sort,
+sorting_functions = {'Selection Sort': selection_sort,
+                     'Built-in Python Sort': tim_sort, 'Merge Sort': merge_sort, 'Quick Sort': quick_sort,
                      'Insertion Sort': insertion_sort,
                      'Bubble Sort': bubble_sort,
-                     'Selection Sort': selection_sort,
                      'Heap Sort': heap_sort}
 arr = []
 for j in range(test_array_length):
-    arr.append(randint(0, 10000))
+    arr.append(randint(0, 100000))
+one = True
 for function in sorting_functions.keys():
     temp = arr.copy()
     args = [temp]
     if function == 'Quick Sort' or function == 'Merge Sort':
         args.append(0)
         args.append(len(temp) - 1)
+    iterations = 0
+    update_plot(temp, first=True)
     sorting_functions[function](*args)
     update_plot(temp, last=True)
 input('Press any button to exit:')
