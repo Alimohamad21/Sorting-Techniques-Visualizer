@@ -1,3 +1,4 @@
+import time
 from random import randint
 from threading import Thread
 
@@ -18,6 +19,7 @@ def play(file):
 
 def update_plot(arr, i=-1, j=-1, last=False, first=False):
     global iterations
+    global function
     colors = test_array_length * ['#1f77b4']
     if i != -1:
         colors[i] = '#2ca02c'
@@ -28,6 +30,7 @@ def update_plot(arr, i=-1, j=-1, last=False, first=False):
     if last:
         for i in range(test_array_length):
             colors[i] = '#2ca02c'
+            plt.title(f'{function}        Iterations:{iterations}')
             plt.bar(indices, arr, color=colors)
             plt.pause(delay)
             plt.draw()
@@ -46,7 +49,6 @@ def update_plot(arr, i=-1, j=-1, last=False, first=False):
 
 def selection_sort(arr):
     global iterations
-    update_plot(arr)
     indexing_length = range(0, len(arr) - 1)
     for i in indexing_length:
         min_value = i
@@ -56,7 +58,8 @@ def selection_sort(arr):
                 min_value = j
         if min_value != i:
             arr[min_value], arr[i] = arr[i], arr[min_value]
-            update_plot(arr, min_value, i)
+            if visual:
+                update_plot(arr, min_value, i)
     return arr
 
 
@@ -69,7 +72,8 @@ def bubble_sort(arr):
             if arr[j + 1] < arr[j]:
                 entered = True
                 arr[j + 1], arr[j] = arr[j], arr[j + 1]
-                update_plot(arr, j, j + 1)
+                if visual:
+                    update_plot(arr, j, j + 1)
         if not entered:
             break
 
@@ -89,10 +93,12 @@ def insertion_sort(arr, left=-10, right=-10):
             entered = True
             arr[j + 1] = arr[j]
             j -= 1
-            update_plot(arr, j, j + 1)
+            if visual:
+                update_plot(arr, j, j + 1)
         if entered:
             arr[j + 1] = temp
-            update_plot(arr, j + 1)
+            if visual:
+                update_plot(arr, j + 1)
 
 
 def build_max_heap(arr):
@@ -112,24 +118,23 @@ def heapify(arr, n, i):
             max = left
         else:
             max = i
-
     if right < n:
         if arr[right] > arr[max]:
             max = right
-
     if max != i:
         arr[i], arr[max] = arr[max], arr[i]
-        update_plot(arr, max, i)
+        if visual:
+            update_plot(arr, max, i)
         heapify(arr, n, max)
 
 
 def heap_sort(arr):
-    update_plot(arr)
     build_max_heap(arr)
     n = len(arr)
     for i in range(n - 1, 0, -1):
         arr[0], arr[i] = arr[i], arr[0]
-        update_plot(arr)
+        if visual:
+            update_plot(arr)
         n = n - 1
         heapify(arr, n, 0)
 
@@ -143,9 +148,11 @@ def partition(arr, low, high):
         if arr[j] <= pivot:
             i = i + 1
             arr[i], arr[j] = arr[j], arr[i]
-            update_plot(arr, i, j)
+            if visual:
+                update_plot(arr, i, j)
     arr[i + 1], arr[high] = arr[high], arr[i + 1]
-    update_plot(arr, i + 1, high)
+    if visual:
+        update_plot(arr, i=i + 1, j=high)
     return i + 1
 
 
@@ -170,10 +177,12 @@ def merge(arr, start, mid, end):
             while index != start:
                 iterations += 1
                 arr[index] = arr[index - 1]
-                update_plot(arr, index, index - 1)
+                if visual:
+                    update_plot(arr, index, index - 1)
                 index -= 1
             arr[start] = value
-            update_plot(arr, start)
+            if visual:
+                update_plot(arr, start)
             start += 1
             mid += 1
             start2 += 1
@@ -211,23 +220,91 @@ def tim_sort(arr):
         size = 2 * size
 
 
-sorting_functions = {'Selection Sort': selection_sort,
-                     'Built-in Python Sort': tim_sort, 'Merge Sort': merge_sort, 'Quick Sort': quick_sort,
-                     'Insertion Sort': insertion_sort,
-                     'Bubble Sort': bubble_sort,
-                     'Heap Sort': heap_sort}
-arr = []
-for j in range(test_array_length):
-    arr.append(randint(0, 100000))
-one = True
-for function in sorting_functions.keys():
-    temp = arr.copy()
-    args = [temp]
-    if function == 'Quick Sort' or function == 'Merge Sort':
-        args.append(0)
-        args.append(len(temp) - 1)
-    iterations = 0
-    update_plot(temp, first=True)
-    sorting_functions[function](*args)
-    update_plot(temp, last=True)
-input('Press any button to exit:')
+sorting_functions = {'Insertion Sort': insertion_sort, 'Bubble Sort': bubble_sort,
+                     'Selection Sort': selection_sort,
+                     'Merge Sort': merge_sort, 'Heap Sort': heap_sort, 'Quick Sort': quick_sort,
+                     }
+function = ''
+visual = True
+iterations = 0
+
+
+def visualize():
+    global iterations
+    global function
+    global visual
+    sorting_functions['Built-in Python sort'] = tim_sort
+    visual = True
+    arr = []
+    for j in range(test_array_length):
+        arr.append(randint(0, 100000))
+    for function in sorting_functions.keys():
+        temp = arr.copy()
+        args = [temp]
+        if function == 'Quick Sort' or function == 'Merge Sort':
+            args.append(0)
+            args.append(len(temp) - 1)
+        iterations = 0
+        update_plot(temp, first=True)
+        sorting_functions[function](*args)
+        update_plot(temp, last=True)
+
+
+def plot_runtimes():
+    global sorting_functions
+    global visual
+    visual = False
+    sorting_functions['Built-in Python sort'] = sorted
+    random_arrays = []
+    n = 10
+    for i in range(4):
+        random_array = []
+        for j in range(n):
+            random_array.append(randint(-10000, 10000))
+        random_arrays.append(random_array)
+        n *= 10
+    runtimes = dict()
+    sizes = []
+    for function in sorting_functions.keys():
+        runtimes[function] = []
+    for i in range(len(random_arrays)):
+        size = len(random_arrays[i])
+        sizes.append(size)
+        print(
+            f'\n---------------------------------------------------> ARRAY SIZE:{size} <---------------------------------------------------\n\n')
+        for function in sorting_functions.keys():
+            temp_inplace = random_arrays[i].copy()
+            temp = random_arrays[i].copy()
+            if i == 0:  # only prints for size 10 to avoid extremely long prints
+                print(f'Array Before {function}:{temp_inplace}\n')
+            start_time = time.time()
+            if function == 'Built-in Sort':
+                args = [temp]
+            else:
+                args = [temp_inplace]
+            if function == 'Quick Sort' or function == 'Merge Sort':
+                args.append(0)
+                args.append(len(temp_inplace) - 1)
+            sorting_functions[function](*args)
+            runtime = (time.time() - start_time)
+            runtimes[function].append(runtime)
+            if i == 0:  # only prints for size 10 to avoid extremely long prints
+                if function == 'Built-in Sort':
+                    print(f'Array After {function}:{sorting_functions[function](*args)}\n')
+                else:
+                    print(f'Array After {function}:{temp_inplace}\n')
+            print(f'{function} Runtime:{runtime} s\n')
+            print('\n\n\n********************************************************************************\n\n\n')
+    print(runtimes)
+    for function in sorting_functions.keys():
+        plt.plot(sizes, runtimes[function])
+    function_names = tuple(sorting_functions.keys())
+    plt.legend(function_names)
+    plt.xlabel('Array Size')
+    plt.ylabel('Run time (in seconds)')
+    plt.ylim([0, 3])
+    plt.show()
+
+
+plot_runtimes()
+visualize()
